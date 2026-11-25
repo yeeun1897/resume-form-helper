@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 외부로 나가는 요청을 모두 막아요: 스크립트·스타일은 이 폴더 파일만, 네트워크 통신(connect)과 폼 전송은 금지 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>이력서 양식 도우미</title>
+<link rel="stylesheet" href="styles.css">
+<script src="docx.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>이력서·자기소개서 양식 도우미</h1>
+    <p class="lead">지원하는 곳에 맞는 양식을 추천하고, 내용만 채우면 되는 Word 파일로 만들어 드려요.</p>
+    <p class="privacy">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 0 1 6 0v3H9Z"/></svg>
+      입력한 내용은 이 브라우저 안에서만 처리돼요. 서버로 보내거나 저장하지 않아요.
+    </p>
+  </div>
+</header>
+
+<main class="wrap layout">
+  <form id="form" class="panel form" autocomplete="off" novalidate>
+    <div class="panel-head">
+      <h2><span class="step">1</span>지원 정보</h2>
+      <div class="row-btns">
+        <button type="button" id="btn-example" class="btn ghost">예시 채우기</button>
+        <button type="reset" id="btn-reset" class="btn ghost subtle">지우기</button>
+      </div>
+    </div>
+    <p id="example-status" class="hint" aria-live="polite"></p>
+
+    <label class="field">
+      <span class="label">지원처 유형 <em>필수</em></span>
+      <select name="org" id="org">
+        <option value="">선택하세요</option>
+        <option value="large">국내 대기업·중견기업</option>
+        <option value="public">공기업·공공기관</option>
+        <option value="foreign">외국계 기업</option>
+        <option value="startup">스타트업·IT</option>
+        <option value="creative">디자인·마케팅·콘텐츠</option>
+        <option value="research">연구소·대학원·학계</option>
+      </select>
+    </label>
+
+    <div class="grid2">
+      <label class="field">
+        <span class="label">회사·기관 이름</span>
+        <input name="company" id="company" maxlength="60" placeholder="예: ○○전자">
+      </label>
+      <label class="field">
+        <span class="label">산업</span>
+        <input name="industry" id="industry" maxlength="60" placeholder="예: 반도체, 제약">
+      </label>
+    </div>
+    <label class="field">
+      <span class="label">지원 직무</span>
+      <input name="jobrole" id="jobrole" maxlength="60" placeholder="예: 해외영업, 백엔드 개발자">
+    </label>
+
+    <fieldset class="field">
+      <legend class="label">서류 언어</legend>
+      <div class="seg">
+        <label><input type="radio" name="doclang" value="ko" checked><span>국문</span></label>
+        <label><input type="radio" name="doclang" value="en"><span>영문</span></label>
+        <label><input type="radio" name="doclang" value="both"><span>국문+영문</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="label">경력</legend>
+      <div class="seg">
+        <label><input type="radio" name="career" value="new" checked><span>신입</span></label>
+        <label><input type="radio" name="career" value="exp"><span>경력</span></label>
+      </div>
+      <label class="inline-field" id="years-wrap" hidden>
+        <span>경력 기간</span>
+        <input type="number" name="years" id="years" min="0" max="40" step="1" inputmode="numeric" value="">
+        <span>년</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="label">디자인</legend>
+      <div class="seg">
+        <label><input type="radio" name="tone" value="classic" checked><span>단정하게</span></label>
+        <label><input type="radio" name="tone" value="modern"><span>모던하게</span></label>
+      </div>
+      <div class="swatches" role="radiogroup" aria-label="포인트 색">
+        <label title="네이비"><input type="radio" name="accent" value="navy" checked><span class="sw sw-navy"></span><span class="sr">네이비</span></label>
+        <label title="차콜"><input type="radio" name="accent" value="charcoal"><span class="sw sw-charcoal"></span><span class="sr">차콜</span></label>
+        <label title="딥그린"><input type="radio" name="accent" value="green"><span class="sw sw-green"></span><span class="sr">딥그린</span></label>
+        <label title="버건디"><input type="radio" name="accent" value="burgundy"><span class="sw sw-burgundy"></span><span class="sr">버건디</span></label>
+      </div>
+      <label class="check"><input type="checkbox" name="photo" id="photo"><span>사진 칸 넣기</span></label>
+    </fieldset>
+
+    <label class="field">
+      <span class="label">자기소개서 문항 <small>(있으면 한 줄에 하나씩)</small></span>
+      <textarea name="questions" id="questions" rows="4" maxlength="2000" placeholder="예: 지원 동기와 입사 후 포부를 기술해 주십시오. (700자)"></textarea>
+      <span class="hint">글자 수를 괄호에 적으면 (예: 700자) 칸에 함께 표시돼요.</span>
+    </label>
+  </form>
+
+  <section class="results">
+    <div class="panel" id="recs-panel">
+      <div class="panel-head"><h2><span class="step">2</span>추천 양식</h2></div>
+      <div id="recs" aria-live="polite"></div>
+      <div id="tips"></div>
+    </div>
+
+    <div class="panel" id="preview-panel" hidden>
+      <div class="panel-head">
+        <h2><span class="step">3</span>미리보기</h2>
+        <div class="tabs" role="tablist" aria-label="미리볼 서류">
+          <button type="button" role="tab" id="tab-resume" data-tab="resume" aria-selected="true">이력서</button>
+          <button type="button" role="tab" id="tab-cover" data-tab="cover" aria-selected="false">자기소개서</button>
+        </div>
+      </div>
+      <p class="hint" id="preview-caption"></p>
+      <div class="paper-wrap"><div id="paper" role="tabpanel"></div></div>
+      <div class="actions">
+        <button type="button" class="btn" id="btn-copy">결과 복사</button>
+        <button type="button" class="btn primary" id="btn-decide">이 양식으로 결정</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot wrap">
+  <p>로그인·데이터베이스·외부 API 없이 동작해요. 새로고침하면 입력한 내용이 지워져요.</p>
+</footer>
+
+<dialog id="dlg-file" aria-labelledby="dlg-title">
+  <h2 id="dlg-title">파일로 만들어 드릴까요?</h2>
+  <p id="dlg-desc"></p>
+  <div class="dlg-options">
+    <button type="button" class="btn primary" id="dl-resume">이력서 Word 파일 (.docx)</button>
+    <button type="button" class="btn primary" id="dl-cover">자기소개서 Word 파일 (.docx)</button>
+    <button type="button" class="btn" id="dl-pdf">PDF로 저장 (인쇄 창 열기)</button>
+  </div>
+  <p class="hint">Word, 한글(HWP), Google Docs에서 열어 바로 편집할 수 있어요. Canva에서 손보고 싶다면 PDF로 저장한 뒤 Canva에 업로드하세요.</p>
+  <p id="dlg-status" class="status" aria-live="polite"></p>
+  <div class="dlg-foot"><button type="button" class="btn ghost" id="dlg-close">아니요, 나중에 할게요</button></div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="print-area" aria-hidden="true"></div>
+</body>
+</html>
